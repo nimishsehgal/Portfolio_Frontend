@@ -7,6 +7,26 @@ function App() {
   const [investmentPeriod, setInvestmentPeriod] = useState('');
   const [results, setResults] = useState(null);
 
+  // const handleSubmit = async () => {
+  //   const stockList = selectedStocks.map(stock => stock.value);
+  
+  //   const formData = new FormData();
+  //   stockList.forEach(stock => formData.append('selected_stocks', stock));
+  //   formData.append('investment_amount', investmentAmount);
+  //   formData.append('investment_period', investmentPeriod);
+  
+  //   try {
+  //     const response = await fetch('http://localhost:8000/equal-weight-portfolio/', {
+  //       method: 'POST',
+  //       body: formData
+  //     });
+  
+  //     const result = await response.json();
+  //     setResults(result.results);  // <== this stores backend data for rendering
+  //   } catch (err) {
+  //     console.error("Error sending data to backend", err);
+  //   }
+  // };
   const handleSubmit = async () => {
     const stockList = selectedStocks.map(stock => stock.value);
   
@@ -16,17 +36,20 @@ function App() {
     formData.append('investment_period', investmentPeriod);
   
     try {
-      const response = await fetch('http://localhost:8000/equal-weight-portfolio/', {
+      const response = await fetch('http://localhost:8000/equal-weight-cumsum-plot/', {
         method: 'POST',
         body: formData
       });
   
       const result = await response.json();
-      setResults(result.results);  // <== this stores backend data for rendering
+      // setResults(result.plot_base64);  // ✅ Store image data
+      setResults(result);  // Store the full result object
+
     } catch (err) {
       console.error("Error sending data to backend", err);
     }
   };
+  
   
 
   return (
@@ -63,7 +86,7 @@ function App() {
       </button>
   
       {/* 🎯 Display results below the submit button */}
-      {results && (
+      {/* {results && (
         <div style={{ marginTop: '40px' }}>
           <h2>Portfolio Optimization Results</h2>
           <table border="1" cellPadding="8">
@@ -85,7 +108,28 @@ function App() {
             </tbody>
           </table>
         </div>
+      )} */}
+
+      {results && (
+        <div style={{ marginTop: '40px' }}>
+          <h2>Cumulative Log Return Plot</h2>
+          <img
+            src={`data:image/png;base64,${results.plot_base64}`}
+            alt="Cumulative Log Return"
+            style={{ maxWidth: '100%', border: '1px solid #ccc', padding: '10px' }}
+          />
+          <div style={{ marginTop: '20px', fontSize: '18px' }}>
+            <p>
+              Final Value: <strong>${results.final_value.toFixed(2)}</strong>
+            </p>
+            <p>
+              Total Return: <strong>{results.percent_return.toFixed(2)}%</strong>
+            </p>
+          </div>
+        </div>
       )}
+
+
     </div>
   );
   
