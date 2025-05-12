@@ -76,7 +76,7 @@ function App() {
     <div className="App" style={{ padding: '20px', maxWidth: '1300px', margin: '0 auto' }}>
       <h1>Portfolio Optimizer</h1>
 
-      <label>Optimization Mode:</label>
+      <label>Optimization Mode: </label>
       <select value={optimizationMode} onChange={e => setOptimizationMode(e.target.value)}>
         <option value="equal">Equal Weighted</option>
         <option value="mean-variance">Mean-Variance Optimization</option>
@@ -86,7 +86,7 @@ function App() {
       <StockSelector selectedStocks={selectedStocks} setSelectedStocks={setSelectedStocks} />
 
       <div style={{ marginBottom: '10px' }}>
-        <label>Total Investment Amount ($):</label>
+        <label>Total Investment Amount (₹): </label>
         <input
           type="number"
           value={investmentAmount}
@@ -95,7 +95,7 @@ function App() {
       </div>
 
       <div style={{ marginBottom: '10px' }}>
-        <label>Investment Period (days):</label>
+        <label>Investment Period (days): </label>
         <input
           type="number"
           value={investmentPeriod}
@@ -105,7 +105,7 @@ function App() {
 
       {optimizationMode === 'mean-variance' && (
         <div style={{ marginBottom: '10px' }}>
-          <label>Target Risk (σ):</label>
+          <label>Target Risk (σ): </label>
           <input
             type="number"
             step="0.01"
@@ -137,16 +137,34 @@ function App() {
             style={{ maxWidth: '100%' }}
           />
 
-          <p><strong>Final Value:</strong> ${results.final_value.toFixed(2)}</p>
+          <p><strong>Final Value:</strong> ₹{results.final_value.toFixed(2)}</p>
           <p><strong>Total Return:</strong> {results.percent_return?.toFixed(2) || results.total_return?.toFixed(2)}%</p>
 
-          {results.weights && (
-            <div>
-              <h3>Optimal Weights</h3>
+          {optimizationMode !== 'equal' && results.weights && (
+            <div style={{ marginTop: '20px' }}>
+              <h3>Optimal Weights (used in bar chart)</h3>
               <ul>
                 {Object.entries(results.weights).map(([stock, weight]) => (
                   <li key={stock}>{stock}: {(weight * 100).toFixed(2)}%</li>
                 ))}
+              </ul>
+            </div>
+          )}
+
+          {(results.investment_breakdown || results.per_stock_investment) && (
+            <div style={{ marginTop: '20px' }}>
+              <h3>Investment Allocation (₹)</h3>
+              <ul>
+                {Object.entries(results.investment_breakdown || results.per_stock_investment).map(
+                  ([stock, info]) => (
+                    <li key={stock}>
+                      {stock}: ₹
+                      {typeof info === "number"
+                        ? info.toFixed(2)
+                        : info.amount_invested.toFixed(2)}
+                    </li>
+                  )
+                )}
               </ul>
             </div>
           )}
