@@ -44,6 +44,8 @@ function App() {
 
       const url = optimizationMode === 'equal'
         ? 'http://localhost:8000/equal-weight-cumsum-plot/'
+        : optimizationMode === 'minimum-risk'
+        ? 'http://localhost:8000/minimum-risk-optimization/'
         : 'http://localhost:8000/mean-variance-optimization/';
 
       const response = await fetch(url, {
@@ -56,6 +58,11 @@ function App() {
       }
 
       const result = await response.json();
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
       setResults(result);
     } catch (err) {
       setError("Failed to fetch portfolio data. Please try again.");
@@ -73,11 +80,12 @@ function App() {
       <select value={optimizationMode} onChange={e => setOptimizationMode(e.target.value)}>
         <option value="equal">Equal Weighted</option>
         <option value="mean-variance">Mean-Variance Optimization</option>
+        <option value="minimum-risk">Minimum-Risk Optimization</option>
       </select>
 
       <StockSelector selectedStocks={selectedStocks} setSelectedStocks={setSelectedStocks} />
 
-      <div style={{ marginBottom: '10px' } }>
+      <div style={{ marginBottom: '10px' }}>
         <label>Total Investment Amount ($):</label>
         <input
           type="number"
@@ -96,7 +104,7 @@ function App() {
       </div>
 
       {optimizationMode === 'mean-variance' && (
-        <div>
+        <div style={{ marginBottom: '10px' }}>
           <label>Target Risk (σ):</label>
           <input
             type="number"
@@ -111,14 +119,27 @@ function App() {
         {isLoading ? 'Processing...' : 'Optimize'}
       </button>
 
-      {error && <div style={{ color: 'red' }}>{error}</div>}
+      {error && <div style={{ color: 'red', marginTop: '10px' }}>{error}</div>}
 
       {results && (
-        <div style={{ marginTop: '10px' }}>
-          <h2>Results for {optimizationMode === 'equal' ? 'Equal Weighted' : 'Mean-Variance'} Portfolio</h2>
-          <img src={`data:image/png;base64,${results.plot_base64}`} alt="Results Plot" style={{ maxWidth: '100%' }} />
+        <div style={{ marginTop: '20px' }}>
+          <h2>
+            Results for {
+              optimizationMode === 'equal' ? 'Equal Weighted' :
+              optimizationMode === 'mean-variance' ? 'Mean-Variance' :
+              'Minimum-Risk'
+            } Portfolio
+          </h2>
+
+          <img
+            src={`data:image/png;base64,${results.plot_base64}`}
+            alt="Results Plot"
+            style={{ maxWidth: '100%' }}
+          />
+
           <p><strong>Final Value:</strong> ${results.final_value.toFixed(2)}</p>
           <p><strong>Total Return:</strong> {results.percent_return?.toFixed(2) || results.total_return?.toFixed(2)}%</p>
+
           {results.weights && (
             <div>
               <h3>Optimal Weights</h3>
